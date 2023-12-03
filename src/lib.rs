@@ -30,6 +30,38 @@ impl SinglePathComponent {
         component.is_valid().then_some(component)
     }
 
+    #[cfg(feature = "sanitise")]
+    /// This will sanitise the input and therefore all inputs are valid.
+    /// Unless there is a bug in the sanitisation then it would `panic`.
+    ///
+    /// ```
+    /// # use pathbuf::SinglePathComponent;
+    /// # #[cfg(unix)]
+    /// # {
+    /// assert_eq!(
+    ///     SinglePathComponent::with_sanitise("/etc/shadow"),
+    ///     SinglePathComponent::new("etc_shadow").unwrap(),
+    /// );
+    /// # }
+    /// ```
+    ///
+    /// The sanitisation algorithm isn't considered stable.
+    /// Therefore the sanitised path could change in the future for the same input.
+    ///
+    /// ## Warning
+    ///
+    /// OWASP recommends against sanitisation in paths.
+    /// This should be only used in rare cases.
+    pub fn with_sanitise(component: &str) -> Self {
+        let sanitised_component = sanitize_filename_reader_friendly::sanitize(component);
+        Self::new(sanitised_component).unwrap_or_else(|| {
+            panic!(
+                "Expected a sanitised path of the original path '{}'",
+                component
+            )
+        })
+    }
+
     fn is_valid(&self) -> bool {
         use std::path::Component;
 
