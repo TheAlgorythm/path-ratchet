@@ -1,2 +1,3 @@
-# path-ratchet
-Prevent path traversal attacks
+# `Path` Ratchet
+
+Prevent path traversal attacks at type level.
