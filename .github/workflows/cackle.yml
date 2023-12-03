@@ -1,0 +1,17 @@
+name: cackle
+
+on:
+  push:
+    branches: [ "MAIN" ]
+  pull_request:
+    branches: [ "MAIN" ]
+
+jobs:
+  cackle:
+    name: cackle check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: cackle-rs/cackle-action@latest
+      - run: cargo acl -n

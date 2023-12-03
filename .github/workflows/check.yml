@@ -1,0 +1,75 @@
+name: Rust
+
+on:
+  push:
+    branches: [ MAIN ]
+  pull_request:
+    branches: [ MAIN ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: "sccache"
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install latest stable
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        components: rustc
+
+    - name: Sccache Action
+      uses: Mozilla-Actions/sccache-action@v0.0.3
+    - name: Build
+      run: cargo build --release --verbose
+    - name: Run tests
+      run: cargo test --release --verbose
+
+  lints:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install latest stable
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+          components: 'rustfmt, clippy'
+
+      - name: Install clippy-sarif
+        uses: baptiste0928/cargo-install@v2.2.0
+        with:
+          crate: clippy-sarif
+      - name: Install sarif-fmt
+        uses: baptiste0928/cargo-install@v2.2.0
+        with:
+          crate: sarif-fmt
+      - name: Format
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: '-- --check'
+
+      - name: Run rust-clippy
+        run:
+          cargo clippy
+          --message-format=json | clippy-sarif | tee rust-clippy-results.sarif | sarif-fmt
+        continue-on-error: true
+
+      - name: Upload analysis results to GitHub
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: rust-clippy-results.sarif
+          category: clippy
+          wait-for-processing: true
+
+      - name: Run rust-clippy for check
+        run:
+          cargo clippy -- -D warnings
