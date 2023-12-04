@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "path-ratchet"
+name = "path_ratchet"
 version = "0.1.0"

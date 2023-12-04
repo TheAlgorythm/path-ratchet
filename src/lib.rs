@@ -25,12 +25,16 @@
 //! filename.push_component(SinglePathComponent::new(user_input).unwrap());
 //! # }
 
+#[cfg(test)]
+mod tests;
+
 use std::path::PathBuf;
 
 /// A safe wrapper for a path with only a single component.
 /// This prevents path traversal attacks.
 ///
 /// It allows just a single normal path element and no parent, root directory or prefix like `C:`.
+/// Allows reference to the current directory of the path (`.`).
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct SinglePathComponent {
     path: PathBuf,
@@ -47,6 +51,7 @@ impl SinglePathComponent {
     /// # {
     /// let some_valid_folder: SinglePathComponent = SinglePathComponent::new("foo").unwrap();
     /// let some_valid_file: SinglePathComponent = SinglePathComponent::new("bar.txt").unwrap();
+    /// let with_backreference: SinglePathComponent = SinglePathComponent::new("./bar.txt").unwrap();
     /// assert!(SinglePathComponent::new("/etc/shadow").is_none());
     /// # }
     /// ```
@@ -61,7 +66,11 @@ impl SinglePathComponent {
     fn is_valid(&self) -> bool {
         use std::path::Component;
 
-        let mut components = self.path.components();
+        let mut components = self
+            .path
+            .components()
+            .filter(|component| !matches!(component, Component::CurDir));
+
         matches!(
             (components.next(), components.next()),
             (Some(Component::Normal(_)), None)
