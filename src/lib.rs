@@ -1,9 +1,36 @@
+//! [`PathBuf::push`] allows any form of path traversal:
+//!
+//! ```
+//! # use std::path::PathBuf;
+//! #
+//! # #[cfg(unix)]
+//! # {
+//! let user_input = "/etc/shadow";
+//! let mut filename = PathBuf::from("/tmp");
+//! filename.push(user_input);
+//! assert_eq!(filename, PathBuf::from("/etc/shadow"));
+//! # }
+//! ```
+//!
+//! Contrary `<PathBuf as PushPathComponent>::push_component` requires a path with only a single element.
+//!
+//! ```should_panic
+//! use std::path::PathBuf;
+//! use path_ratchet::prelude::*;
+//!
+//! # #[cfg(unix)]
+//! # {
+//! let user_input = "/etc/shadow";
+//! let mut filename = PathBuf::from("/tmp");
+//! filename.push_component(SinglePathComponent::new(user_input).unwrap());
+//! # }
+
 use std::path::PathBuf;
 
 /// A safe wrapper for a path with only a single component.
 /// This prevents path traversal attacks.
 ///
-/// It just allows a single normal path element and no parent, root directory or prefix like `C:`.
+/// It allows just a single normal path element and no parent, root directory or prefix like `C:`.
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord, Hash)]
 pub struct SinglePathComponent {
     path: PathBuf,
@@ -14,7 +41,8 @@ impl SinglePathComponent {
     /// Otherwise it will return `None`.
     ///
     /// ```
-    /// # use path_ratchet::SinglePathComponent;
+    /// use path_ratchet::SinglePathComponent;
+    ///
     /// # #[cfg(unix)]
     /// # {
     /// let some_valid_folder: SinglePathComponent = SinglePathComponent::new("foo").unwrap();
@@ -55,21 +83,23 @@ impl AsRef<std::path::Path> for SinglePathComponent {
     }
 }
 
-/// This allows to push just a [`SinglePathComponent`] to a [`std::path::PathBuf`].
-///
-/// ```
-/// use std::path::PathBuf;
-/// # use path_ratchet::{SinglePathComponent, PushPathComponent};
-/// # #[cfg(unix)]
-/// # {
-/// let mut path = PathBuf::new();
-/// path.push_component(SinglePathComponent::new("foo").unwrap());
-/// path.push_component(SinglePathComponent::new("bar.txt").unwrap());
-///
-/// assert_eq!(path, PathBuf::from("foo/bar.txt"));
-/// # }
-/// ```
+/// Extension trait for [`PathBuf`] to push components individually.
 pub trait PushPathComponent {
+    /// This allows to push just a [`SinglePathComponent`] to a [`std::path::PathBuf`].
+    ///
+    /// ```
+    /// use std::path::PathBuf;
+    /// use path_ratchet::prelude::*;
+    ///
+    /// # #[cfg(unix)]
+    /// # {
+    /// let mut path = PathBuf::new();
+    /// path.push_component(SinglePathComponent::new("foo").unwrap());
+    /// path.push_component(SinglePathComponent::new("bar.txt").unwrap());
+    ///
+    /// assert_eq!(path, PathBuf::from("foo/bar.txt"));
+    /// # }
+    /// ```
     fn push_component(&mut self, component: SinglePathComponent);
 }
 
@@ -77,4 +107,10 @@ impl PushPathComponent for PathBuf {
     fn push_component(&mut self, component: SinglePathComponent) {
         self.push(component);
     }
+}
+
+/// All needed defenitions
+pub mod prelude {
+    pub use crate::PushPathComponent;
+    pub use crate::SinglePathComponent;
 }
