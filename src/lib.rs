@@ -24,6 +24,7 @@
 //! let mut filename = PathBuf::from("/tmp");
 //! filename.push_component(SinglePathComponent::new(user_input).unwrap());
 //! # }
+//! ```
 
 #[cfg(test)]
 mod tests;

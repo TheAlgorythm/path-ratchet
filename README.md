@@ -5,3 +5,12 @@
 [![crev reviews](https://web.crev.dev/rust-reviews/badge/crev_count/path_ratchet.svg)](https://web.crev.dev/rust-reviews/crate/path_ratchet/)
 
 Prevent path traversal attacks at type level.
+
+```Rust
+use std::path::PathBuf;
+use path_ratchet::prelude::*;
+
+let user_input = "/etc/shadow";
+let mut filename = PathBuf::from("/tmp");
+filename.push_component(SinglePathComponent::new(user_input).unwrap());
+```
