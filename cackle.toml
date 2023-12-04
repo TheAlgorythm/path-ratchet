@@ -1,0 +1,22 @@
+[common]
+version = 2
+import_std = [
+    "fs",
+    "net",
+    "process",
+    "unix_sockets",
+]
+
+[sandbox]
+kind = "Disabled"
+
+[api.process]
+exclude = [
+    "std::process::ExitCode",
+    "std::process::ExitStatus",
+]
+
+[api.fs]
+exclude = [
+    "std::path",
+]
