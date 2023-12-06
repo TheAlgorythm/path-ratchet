@@ -22,7 +22,7 @@
 //! # {
 //! let user_input = "/etc/shadow";
 //! let mut filename = PathBuf::from("/tmp");
-//! filename.push_component(SinglePathComponent::new(user_input).unwrap());
+//! filename.push_component(SingleComponentPathBuf::new(user_input).unwrap());
 //! # }
 //! ```
 
@@ -37,23 +37,23 @@ use std::path::PathBuf;
 /// It allows just a single normal path element and no parent, root directory or prefix like `C:`.
 /// Allows reference to the current directory of the path (`.`).
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub struct SinglePathComponent {
+pub struct SingleComponentPathBuf {
     path: PathBuf,
 }
 
-impl SinglePathComponent {
+impl SingleComponentPathBuf {
     /// It creates the wrapped `PathComponent` if it's valid.
     /// Otherwise it will return `None`.
     ///
     /// ```
-    /// use path_ratchet::SinglePathComponent;
+    /// use path_ratchet::SingleComponentPathBuf;
     ///
     /// # #[cfg(unix)]
     /// # {
-    /// let some_valid_folder: SinglePathComponent = SinglePathComponent::new("foo").unwrap();
-    /// let some_valid_file: SinglePathComponent = SinglePathComponent::new("bar.txt").unwrap();
-    /// let with_backreference: SinglePathComponent = SinglePathComponent::new("./bar.txt").unwrap();
-    /// assert!(SinglePathComponent::new("/etc/shadow").is_none());
+    /// let some_valid_folder: SingleComponentPathBuf = SingleComponentPathBuf::new("foo").unwrap();
+    /// let some_valid_file: SingleComponentPathBuf = SingleComponentPathBuf::new("bar.txt").unwrap();
+    /// let with_backreference: SingleComponentPathBuf = SingleComponentPathBuf::new("./bar.txt").unwrap();
+    /// assert!(SingleComponentPathBuf::new("/etc/shadow").is_none());
     /// # }
     /// ```
     pub fn new<S: Into<PathBuf>>(component: S) -> Option<Self> {
@@ -79,7 +79,7 @@ impl SinglePathComponent {
     }
 }
 
-impl std::ops::Deref for SinglePathComponent {
+impl std::ops::Deref for SingleComponentPathBuf {
     type Target = std::path::Path;
 
     fn deref(&self) -> &Self::Target {
@@ -87,7 +87,7 @@ impl std::ops::Deref for SinglePathComponent {
     }
 }
 
-impl AsRef<std::path::Path> for SinglePathComponent {
+impl AsRef<std::path::Path> for SingleComponentPathBuf {
     fn as_ref(&self) -> &std::path::Path {
         &self.path
     }
@@ -95,7 +95,7 @@ impl AsRef<std::path::Path> for SinglePathComponent {
 
 /// Extension trait for [`PathBuf`] to push components individually.
 pub trait PushPathComponent {
-    /// This allows to push just a [`SinglePathComponent`] to a [`std::path::PathBuf`].
+    /// This allows to push just a [`SingleComponentPathBuf`] to a [`std::path::PathBuf`].
     ///
     /// ```
     /// use std::path::PathBuf;
@@ -104,17 +104,17 @@ pub trait PushPathComponent {
     /// # #[cfg(unix)]
     /// # {
     /// let mut path = PathBuf::new();
-    /// path.push_component(SinglePathComponent::new("foo").unwrap());
-    /// path.push_component(SinglePathComponent::new("bar.txt").unwrap());
+    /// path.push_component(SingleComponentPathBuf::new("foo").unwrap());
+    /// path.push_component(SingleComponentPathBuf::new("bar.txt").unwrap());
     ///
     /// assert_eq!(path, PathBuf::from("foo/bar.txt"));
     /// # }
     /// ```
-    fn push_component(&mut self, component: SinglePathComponent);
+    fn push_component(&mut self, component: SingleComponentPathBuf);
 }
 
 impl PushPathComponent for PathBuf {
-    fn push_component(&mut self, component: SinglePathComponent) {
+    fn push_component(&mut self, component: SingleComponentPathBuf) {
         self.push(component);
     }
 }
@@ -122,5 +122,5 @@ impl PushPathComponent for PathBuf {
 /// All needed defenitions
 pub mod prelude {
     pub use crate::PushPathComponent;
-    pub use crate::SinglePathComponent;
+    pub use crate::SingleComponentPathBuf;
 }

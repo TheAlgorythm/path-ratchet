@@ -13,5 +13,5 @@ use path_ratchet::prelude::*;
 
 let user_input = "/etc/shadow";
 let mut filename = PathBuf::from("/tmp");
-filename.push_component(SinglePathComponent::new(user_input).unwrap());
+filename.push_component(SingleComponentPathBuf::new(user_input).unwrap());
 ```
