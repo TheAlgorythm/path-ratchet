@@ -34,6 +34,77 @@ use std::{
     path::{Path, PathBuf},
 };
 
+macro_rules! impl_buf_traits {
+    ($path_buf:ty) => {
+        impl AsRef<Path> for $path_buf {
+            fn as_ref(&self) -> &Path {
+                &self.path
+            }
+        }
+    };
+}
+
+macro_rules! impl_ref_path_traits {
+    ($path_ref:ty) => {
+        impl std::ops::Deref for $path_ref {
+            type Target = Path;
+
+            fn deref(&self) -> &Self::Target {
+                &self.path
+            }
+        }
+
+        impl AsRef<Self> for $path_ref {
+            fn as_ref(&self) -> &Self {
+                self
+            }
+        }
+
+        impl AsRef<Path> for $path_ref {
+            fn as_ref(&self) -> &Path {
+                &self.path
+            }
+        }
+    };
+}
+
+macro_rules! impl_conv_traits {
+    ($path_buf:ty, $path_ref:ty) => {
+        impl Borrow<$path_ref> for $path_buf {
+            #[allow(unsafe_code)]
+            #[allow(clippy::as_conversions)]
+            fn borrow(&self) -> &$path_ref {
+                // SAFETY: same reprensentation
+                unsafe { &*(self.path.as_path() as *const Path as *const $path_ref) }
+            }
+        }
+
+        impl ToOwned for $path_ref {
+            type Owned = $path_buf;
+
+            fn to_owned(&self) -> Self::Owned {
+                Self::Owned {
+                    path: self.path.to_path_buf(),
+                }
+            }
+        }
+
+        impl std::ops::Deref for $path_buf {
+            type Target = $path_ref;
+
+            fn deref(&self) -> &Self::Target {
+                self.borrow()
+            }
+        }
+
+        impl AsRef<$path_ref> for $path_buf {
+            fn as_ref(&self) -> &$path_ref {
+                self.borrow()
+            }
+        }
+    };
+}
+
 /// A safe wrapper for a `PathBuf` with only a single component.
 /// This prevents path traversal attacks.
 ///
@@ -74,25 +145,7 @@ impl SingleComponentPathBuf {
     }
 }
 
-impl std::ops::Deref for SingleComponentPathBuf {
-    type Target = SingleComponentPath;
-
-    fn deref(&self) -> &Self::Target {
-        self.borrow()
-    }
-}
-
-impl AsRef<SingleComponentPath> for SingleComponentPathBuf {
-    fn as_ref(&self) -> &SingleComponentPath {
-        self.borrow()
-    }
-}
-
-impl AsRef<Path> for SingleComponentPathBuf {
-    fn as_ref(&self) -> &Path {
-        &self.path
-    }
-}
+impl_buf_traits! {SingleComponentPathBuf}
 
 /// A safe wrapper for a `Path` with only a single component.
 /// This prevents path traversal attacks.
@@ -150,44 +203,8 @@ impl SingleComponentPath {
     }
 }
 
-impl Borrow<SingleComponentPath> for SingleComponentPathBuf {
-    #[allow(unsafe_code)]
-    #[allow(clippy::as_conversions)]
-    fn borrow(&self) -> &SingleComponentPath {
-        // SAFETY: same reprensentation
-        unsafe { &*(self.path.as_path() as *const Path as *const SingleComponentPath) }
-    }
-}
-
-impl ToOwned for SingleComponentPath {
-    type Owned = SingleComponentPathBuf;
-
-    fn to_owned(&self) -> Self::Owned {
-        Self::Owned {
-            path: self.path.to_path_buf(),
-        }
-    }
-}
-
-impl std::ops::Deref for SingleComponentPath {
-    type Target = Path;
-
-    fn deref(&self) -> &Self::Target {
-        &self.path
-    }
-}
-
-impl AsRef<Self> for SingleComponentPath {
-    fn as_ref(&self) -> &Self {
-        self
-    }
-}
-
-impl AsRef<Path> for SingleComponentPath {
-    fn as_ref(&self) -> &Path {
-        &self.path
-    }
-}
+impl_ref_path_traits! {SingleComponentPath}
+impl_conv_traits! {SingleComponentPathBuf, SingleComponentPath}
 
 /// A safe wrapper for a `PathBuf`.
 /// This prevents path traversal attacks.
