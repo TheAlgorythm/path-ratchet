@@ -16,7 +16,7 @@ documentation = "https://docs.rs/crate/path_ratchet"
 
 
 [lints.rust]
-unsafe_code = "forbid"
+unsafe_code = "deny"
 missing_abi = "warn"
 missing_docs = "warn"
 noop_method_call = "warn"

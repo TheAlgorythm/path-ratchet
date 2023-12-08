@@ -29,7 +29,10 @@
 #[cfg(test)]
 mod tests;
 
-use std::path::{Path, PathBuf};
+use std::{
+    borrow::Borrow,
+    path::{Path, PathBuf},
+};
 
 /// A safe wrapper for a `PathBuf` with only a single component.
 /// This prevents path traversal attacks.
@@ -67,17 +70,21 @@ impl SingleComponentPathBuf {
             path: component.into(),
         };
 
-        SingleComponentPath::from(&component)
-            .is_valid()
-            .then_some(component)
+        component.is_valid().then_some(component)
     }
 }
 
 impl std::ops::Deref for SingleComponentPathBuf {
-    type Target = Path;
+    type Target = SingleComponentPath;
 
     fn deref(&self) -> &Self::Target {
-        &self.path
+        self.borrow()
+    }
+}
+
+impl AsRef<SingleComponentPath> for SingleComponentPathBuf {
+    fn as_ref(&self) -> &SingleComponentPath {
+        self.borrow()
     }
 }
 
@@ -96,11 +103,12 @@ impl AsRef<Path> for SingleComponentPathBuf {
 /// It allows just a single normal path element and no parent, root directory or prefix like `C:`.
 /// Allows reference to the current directory of the path (`.`).
 #[derive(Debug, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub struct SingleComponentPath<'p> {
-    pub(crate) path: &'p Path,
+#[repr(transparent)]
+pub struct SingleComponentPath {
+    pub(crate) path: Path,
 }
 
-impl<'p> SingleComponentPath<'p> {
+impl SingleComponentPath {
     /// It creates the wrapped `SingleComponentPath` if it's valid.
     /// Otherwise it will return `None`.
     ///
@@ -118,10 +126,11 @@ impl<'p> SingleComponentPath<'p> {
     /// assert!(SingleComponentPath::new("/etc/shadow").is_none());
     /// # }
     /// ```
-    pub fn new<P: AsRef<Path> + ?Sized>(component: &'p P) -> Option<Self> {
-        let component = Self {
-            path: component.as_ref(),
-        };
+    #[allow(unsafe_code)]
+    #[allow(clippy::as_conversions)]
+    pub fn new<P: AsRef<Path> + ?Sized>(component: &P) -> Option<&Self> {
+        // SAFETY: same reprensentation
+        let component = unsafe { &*(component.as_ref() as *const Path as *const Self) };
 
         component.is_valid().then_some(component)
     }
@@ -141,31 +150,42 @@ impl<'p> SingleComponentPath<'p> {
     }
 }
 
-impl<'p> From<&'p SingleComponentPathBuf> for SingleComponentPath<'p> {
-    fn from(s: &'p SingleComponentPathBuf) -> Self {
-        Self { path: &s.path }
+impl Borrow<SingleComponentPath> for SingleComponentPathBuf {
+    #[allow(unsafe_code)]
+    #[allow(clippy::as_conversions)]
+    fn borrow(&self) -> &SingleComponentPath {
+        // SAFETY: same reprensentation
+        unsafe { &*(self.path.as_path() as *const Path as *const SingleComponentPath) }
     }
 }
 
-impl<'p> From<SingleComponentPath<'p>> for SingleComponentPathBuf {
-    fn from(s: SingleComponentPath<'p>) -> Self {
-        Self {
-            path: s.path.to_path_buf(),
+impl ToOwned for SingleComponentPath {
+    type Owned = SingleComponentPathBuf;
+
+    fn to_owned(&self) -> Self::Owned {
+        Self::Owned {
+            path: self.path.to_path_buf(),
         }
     }
 }
 
-impl std::ops::Deref for SingleComponentPath<'_> {
+impl std::ops::Deref for SingleComponentPath {
     type Target = Path;
 
     fn deref(&self) -> &Self::Target {
-        self.path
+        &self.path
     }
 }
 
-impl AsRef<Path> for SingleComponentPath<'_> {
+impl AsRef<Self> for SingleComponentPath {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
+impl AsRef<Path> for SingleComponentPath {
     fn as_ref(&self) -> &Path {
-        self.path
+        &self.path
     }
 }
 
@@ -313,12 +333,12 @@ pub trait PushPathComponent {
     /// # {
     /// let mut path = PathBuf::new();
     /// path.push_component(SingleComponentPath::new("foo").unwrap());
-    /// path.push_component(&SingleComponentPathBuf::new("bar.txt").unwrap());
+    /// path.push_component(SingleComponentPathBuf::new("bar.txt").unwrap());
     ///
     /// assert_eq!(path, PathBuf::from("foo/bar.txt"));
     /// # }
     /// ```
-    fn push_component<'p>(&mut self, component: impl Into<SingleComponentPath<'p>>);
+    fn push_component(&mut self, component: impl AsRef<SingleComponentPath>);
     /// ```
     /// use std::path::PathBuf;
     /// use path_ratchet::prelude::*;
@@ -335,8 +355,8 @@ pub trait PushPathComponent {
 }
 
 impl PushPathComponent for PathBuf {
-    fn push_component<'p>(&mut self, component: impl Into<SingleComponentPath<'p>>) {
-        self.push(component.into());
+    fn push_component(&mut self, component: impl AsRef<SingleComponentPath>) {
+        self.push(component.as_ref());
     }
 
     fn push_components<'p>(&mut self, component: impl Into<MultiComponentPath<'p>>) {
