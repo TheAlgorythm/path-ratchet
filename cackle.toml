@@ -20,3 +20,6 @@ exclude = [
 exclude = [
     "std::path",
 ]
+
+[pkg.path_ratchet]
+allow_unsafe = true
