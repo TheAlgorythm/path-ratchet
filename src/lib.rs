@@ -242,25 +242,11 @@ impl MultiComponentPathBuf {
             path: component.into(),
         };
 
-        MultiComponentPath::from(&component)
-            .is_valid()
-            .then_some(component)
+        component.is_valid().then_some(component)
     }
 }
 
-impl std::ops::Deref for MultiComponentPathBuf {
-    type Target = Path;
-
-    fn deref(&self) -> &Self::Target {
-        &self.path
-    }
-}
-
-impl AsRef<Path> for MultiComponentPathBuf {
-    fn as_ref(&self) -> &Path {
-        &self.path
-    }
-}
+impl_buf_traits! {MultiComponentPathBuf}
 
 /// A safe wrapper for a `Path`.
 /// This prevents path traversal attacks.
@@ -271,11 +257,11 @@ impl AsRef<Path> for MultiComponentPathBuf {
 /// It allows just normal path elements and no parent, root directory or prefix like `C:`.
 /// Further allowed are references to the current directory of the path (`.`).
 #[derive(Debug, PartialEq, PartialOrd, Eq, Ord, Hash)]
-pub struct MultiComponentPath<'p> {
-    pub(crate) path: &'p Path,
+pub struct MultiComponentPath {
+    pub(crate) path: Path,
 }
 
-impl<'p> MultiComponentPath<'p> {
+impl MultiComponentPath {
     /// It creates the wrapped `MultiComponentPath` if it's valid.
     /// Otherwise it will return `None`.
     ///
@@ -293,10 +279,11 @@ impl<'p> MultiComponentPath<'p> {
     /// assert!(MultiComponentPath::new("/etc/shadow").is_none());
     /// # }
     /// ```
-    pub fn new<P: AsRef<Path> + ?Sized>(component: &'p P) -> Option<Self> {
-        let component = Self {
-            path: component.as_ref(),
-        };
+    #[allow(unsafe_code)]
+    #[allow(clippy::as_conversions)]
+    pub fn new<P: AsRef<Path> + ?Sized>(component: &P) -> Option<&Self> {
+        // SAFETY: same reprensentation
+        let component = unsafe { &*(component.as_ref() as *const Path as *const Self) };
 
         component.is_valid().then_some(component)
     }
@@ -310,33 +297,8 @@ impl<'p> MultiComponentPath<'p> {
     }
 }
 
-impl<'p> From<&'p MultiComponentPathBuf> for MultiComponentPath<'p> {
-    fn from(s: &'p MultiComponentPathBuf) -> Self {
-        Self { path: &s.path }
-    }
-}
-
-impl<'p> From<MultiComponentPath<'p>> for MultiComponentPathBuf {
-    fn from(s: MultiComponentPath<'p>) -> Self {
-        Self {
-            path: s.path.to_path_buf(),
-        }
-    }
-}
-
-impl std::ops::Deref for MultiComponentPath<'_> {
-    type Target = Path;
-
-    fn deref(&self) -> &Self::Target {
-        self.path
-    }
-}
-
-impl AsRef<Path> for MultiComponentPath<'_> {
-    fn as_ref(&self) -> &Path {
-        self.path
-    }
-}
+impl_ref_path_traits! {MultiComponentPath}
+impl_conv_traits! {MultiComponentPathBuf, MultiComponentPath}
 
 /// Extension trait for [`PathBuf`] to push only components which don't allow path traversal.
 pub trait PushPathComponent {
@@ -363,12 +325,13 @@ pub trait PushPathComponent {
     /// # #[cfg(unix)]
     /// # {
     /// let mut path = PathBuf::new();
-    /// path.push_components(MultiComponentPath::new("foo/bar.txt").unwrap());
+    /// path.push_components(MultiComponentPath::new("a/b").unwrap());
+    /// path.push_components(MultiComponentPathBuf::new("foo/bar.txt").unwrap());
     ///
-    /// assert_eq!(path, PathBuf::from("foo/bar.txt"));
+    /// assert_eq!(path, PathBuf::from("a/b/foo/bar.txt"));
     /// # }
     /// ```
-    fn push_components<'p>(&mut self, component: impl Into<MultiComponentPath<'p>>);
+    fn push_components(&mut self, component: impl AsRef<MultiComponentPath>);
 }
 
 impl PushPathComponent for PathBuf {
@@ -376,8 +339,8 @@ impl PushPathComponent for PathBuf {
         self.push(component.as_ref());
     }
 
-    fn push_components<'p>(&mut self, component: impl Into<MultiComponentPath<'p>>) {
-        self.push(component.into());
+    fn push_components(&mut self, component: impl AsRef<MultiComponentPath>) {
+        self.push(component.as_ref());
     }
 }
 
