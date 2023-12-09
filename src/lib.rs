@@ -25,6 +25,19 @@
 //! filename.push_component(SingleComponentPath::new(user_input).unwrap());
 //! # }
 //! ```
+//!
+//! # Security
+//!
+//! It is essential to check the path on the same platform it is used on.
+//! As an example the path `C:\path\to\file.txt` will be interpreted as a file or directory name on an UNIX-system.
+//!
+//! ```
+//! # use path_ratchet::prelude::*;
+//! # #[cfg(unix)]
+//! # {
+//! SingleComponentPath::new(r"C:\path\to\file.txt").unwrap();
+//! # }
+//! ```
 
 #[cfg(test)]
 mod tests;
