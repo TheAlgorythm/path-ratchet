@@ -68,14 +68,24 @@ macro_rules! impl_ref_path_traits {
     };
 }
 
+macro_rules! wrap_ref_path {
+    ($path:expr, $path_ref:ty) => {{
+        let path: &Path = $path;
+        let path: &<$path_ref as std::ops::Deref>::Target = path;
+        #[allow(unsafe_code)]
+        #[allow(clippy::as_conversions)]
+        // SAFETY: same reprensentation
+        unsafe {
+            &*(path as *const Path as *const $path_ref)
+        }
+    }};
+}
+
 macro_rules! impl_conv_traits {
     ($path_buf:ty, $path_ref:ty) => {
         impl Borrow<$path_ref> for $path_buf {
-            #[allow(unsafe_code)]
-            #[allow(clippy::as_conversions)]
             fn borrow(&self) -> &$path_ref {
-                // SAFETY: same reprensentation
-                unsafe { &*(self.path.as_path() as *const Path as *const $path_ref) }
+                wrap_ref_path!(self.path.as_path(), $path_ref)
             }
         }
 
@@ -179,11 +189,8 @@ impl SingleComponentPath {
     /// assert!(SingleComponentPath::new("/etc/shadow").is_none());
     /// # }
     /// ```
-    #[allow(unsafe_code)]
-    #[allow(clippy::as_conversions)]
     pub fn new<P: AsRef<Path> + ?Sized>(component: &P) -> Option<&Self> {
-        // SAFETY: same reprensentation
-        let component = unsafe { &*(component.as_ref() as *const Path as *const Self) };
+        let component = wrap_ref_path!(component.as_ref(), Self);
 
         component.is_valid().then_some(component)
     }
@@ -257,6 +264,7 @@ impl_buf_traits! {MultiComponentPathBuf}
 /// It allows just normal path elements and no parent, root directory or prefix like `C:`.
 /// Further allowed are references to the current directory of the path (`.`).
 #[derive(Debug, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[repr(transparent)]
 pub struct MultiComponentPath {
     pub(crate) path: Path,
 }
@@ -279,11 +287,8 @@ impl MultiComponentPath {
     /// assert!(MultiComponentPath::new("/etc/shadow").is_none());
     /// # }
     /// ```
-    #[allow(unsafe_code)]
-    #[allow(clippy::as_conversions)]
     pub fn new<P: AsRef<Path> + ?Sized>(component: &P) -> Option<&Self> {
-        // SAFETY: same reprensentation
-        let component = unsafe { &*(component.as_ref() as *const Path as *const Self) };
+        let component = wrap_ref_path!(component.as_ref(), Self);
 
         component.is_valid().then_some(component)
     }
