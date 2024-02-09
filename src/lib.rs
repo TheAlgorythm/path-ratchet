@@ -83,12 +83,14 @@ macro_rules! impl_ref_path_traits {
 
 macro_rules! wrap_ref_path {
     ($path:expr, $path_ref:ty) => {{
-        let path: &Path = $path;
+        let path: &Path = $path; // Not needed with ptr::from_ref
         let path: &<$path_ref as std::ops::Deref>::Target = path;
+        // let path = std::ptr::from_ref::<Path>(path); Can be used with a MSRV of 1.76 instead of `as`
         #[allow(unsafe_code)]
         #[allow(clippy::as_conversions)]
         // SAFETY: same reprensentation
         unsafe {
+            // &*(path as *const $path_ref) Simpler/safer with MSRV 1.76
             &*(path as *const Path as *const $path_ref)
         }
     }};
