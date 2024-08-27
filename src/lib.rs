@@ -88,6 +88,7 @@ macro_rules! wrap_ref_path {
         // let path = std::ptr::from_ref::<Path>(path); Can be used with a MSRV of 1.76 instead of `as`
         #[allow(unsafe_code)]
         #[allow(clippy::as_conversions)]
+        #[allow(clippy::ref_as_ptr)]
         // SAFETY: same reprensentation
         unsafe {
             // &*(path as *const $path_ref) Simpler/safer with MSRV 1.76
