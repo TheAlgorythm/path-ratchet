@@ -162,12 +162,15 @@ impl SingleComponentPathBuf {
     /// assert!(SingleComponentPathBuf::new("/etc/shadow").is_none());
     /// # }
     /// ```
+    #[inline]
     pub fn new<S: Into<PathBuf>>(component: S) -> Option<Self> {
-        let component = Self {
-            path: component.into(),
-        };
+        fn inner(component: PathBuf) -> Option<SingleComponentPathBuf> {
+            let component = SingleComponentPathBuf { path: component };
 
-        component.is_valid().then_some(component)
+            component.is_valid().then_some(component)
+        }
+
+        inner(component.into())
     }
 }
 
@@ -205,10 +208,15 @@ impl SingleComponentPath {
     /// assert!(SingleComponentPath::new("/etc/shadow").is_none());
     /// # }
     /// ```
+    #[inline]
     pub fn new<P: AsRef<Path> + ?Sized>(component: &P) -> Option<&Self> {
-        let component = wrap_ref_path!(component.as_ref(), Self);
+        fn inner(component: &Path) -> Option<&SingleComponentPath> {
+            let component = wrap_ref_path!(component, SingleComponentPath);
 
-        component.is_valid().then_some(component)
+            component.is_valid().then_some(component)
+        }
+
+        inner(component.as_ref())
     }
 
     pub(crate) fn is_valid(&self) -> bool {
@@ -260,12 +268,15 @@ impl MultiComponentPathBuf {
     /// assert!(MultiComponentPathBuf::new("/etc/shadow").is_none());
     /// # }
     /// ```
+    #[inline]
     pub fn new<S: Into<PathBuf>>(component: S) -> Option<Self> {
-        let component = Self {
-            path: component.into(),
-        };
+        fn inner(component: PathBuf) -> Option<MultiComponentPathBuf> {
+            let component = MultiComponentPathBuf { path: component };
 
-        component.is_valid().then_some(component)
+            component.is_valid().then_some(component)
+        }
+
+        inner(component.into())
     }
 }
 
@@ -303,10 +314,15 @@ impl MultiComponentPath {
     /// assert!(MultiComponentPath::new("/etc/shadow").is_none());
     /// # }
     /// ```
+    #[inline]
     pub fn new<P: AsRef<Path> + ?Sized>(component: &P) -> Option<&Self> {
-        let component = wrap_ref_path!(component.as_ref(), Self);
+        fn inner(component: &Path) -> Option<&MultiComponentPath> {
+            let component = wrap_ref_path!(component, MultiComponentPath);
 
-        component.is_valid().then_some(component)
+            component.is_valid().then_some(component)
+        }
+
+        inner(component.as_ref())
     }
 
     pub(crate) fn is_valid(&self) -> bool {
