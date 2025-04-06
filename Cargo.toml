@@ -5,6 +5,7 @@ version = "0.3.0"
 license = "LGPL-3.0-only"
 edition = "2021"
 description = "Prevent path traversal attacks at type level"
+categories = ["security", "filesystem"]
 keywords = ["path-traversal", "fs", "security", "path_traversal", "path"]
 readme = "README.md"
 repository = "https://github.com/TheAlgorythm/path-ratchet"
