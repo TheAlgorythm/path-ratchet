@@ -23,3 +23,19 @@ exclude = [
 
 [pkg.path_ratchet]
 allow_unsafe = true
+
+[pkg.serde_derive]
+allow_proc_macro = true
+
+[pkg.serde]
+build.allow_apis = [
+    "fs",
+    "process",
+]
+
+[pkg.serde_core]
+build.allow_apis = [
+    "fs",
+    "process",
+]
+allow_unsafe = true
