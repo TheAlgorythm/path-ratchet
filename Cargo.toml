@@ -14,7 +14,13 @@ documentation = "https://docs.rs/crate/path_ratchet"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+serde_core = { version = "1.0", optional = true }
 
+[features]
+serde = ["dep:serde_core"]
+
+[dev-dependencies]
+serde_test = "1.0"
 
 [lints.rust]
 unsafe_code = "deny"

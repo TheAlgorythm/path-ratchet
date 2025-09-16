@@ -42,23 +42,57 @@
 #[cfg(test)]
 mod tests;
 
+#[cfg(all(test, feature = "serde"))]
+mod serde_tests;
+
 use std::{
     borrow::Borrow,
     path::{Path, PathBuf},
 };
 
 macro_rules! impl_buf_traits {
-    ($path_buf:ty) => {
+    ($path_buf: ident, $serde_expected_type: literal) => {
         impl AsRef<Path> for $path_buf {
             fn as_ref(&self) -> &Path {
                 &self.path
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl<'de> serde_core::Deserialize<'de> for $path_buf {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde_core::Deserializer<'de>,
+            {
+                let path_buf = PathBuf::deserialize(deserializer)?;
+
+                let path_buf = $path_buf { path: path_buf };
+
+                if path_buf.is_valid() {
+                    Ok(path_buf)
+                } else {
+                    Err(serde_core::de::Error::invalid_value(
+                        serde_core::de::Unexpected::Str(&path_buf.to_string_lossy()),
+                        &$serde_expected_type,
+                    ))
+                }
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl serde_core::Serialize for $path_buf {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde_core::Serializer,
+            {
+                self.path.serialize(serializer)
             }
         }
     };
 }
 
 macro_rules! impl_ref_path_traits {
-    ($path_ref:ty) => {
+    ($path_ref:ty, $serde_expected_type: literal) => {
         impl std::ops::Deref for $path_ref {
             type Target = Path;
 
@@ -76,6 +110,37 @@ macro_rules! impl_ref_path_traits {
         impl AsRef<Path> for $path_ref {
             fn as_ref(&self) -> &Path {
                 &self.path
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl<'de: 'a, 'a> serde_core::Deserialize<'de> for &'a $path_ref {
+            fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+            where
+                D: serde_core::Deserializer<'de>,
+            {
+                let path = <&'a Path>::deserialize(deserializer)?;
+
+                let path = wrap_ref_path!(path, $path_ref);
+
+                if path.is_valid() {
+                    Ok(path)
+                } else {
+                    Err(serde_core::de::Error::invalid_value(
+                        serde_core::de::Unexpected::Str(&path.to_string_lossy()),
+                        &$serde_expected_type,
+                    ))
+                }
+            }
+        }
+
+        #[cfg(feature = "serde")]
+        impl serde_core::Serialize for $path_ref {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: serde_core::Serializer,
+            {
+                self.path.serialize(serializer)
             }
         }
     };
@@ -174,7 +239,7 @@ impl SingleComponentPathBuf {
     }
 }
 
-impl_buf_traits! {SingleComponentPathBuf}
+impl_buf_traits! {SingleComponentPathBuf, "a path with only a single forwarding component"}
 
 /// A safe wrapper for a `Path` with only a single component.
 /// This prevents path traversal attacks.
@@ -234,7 +299,7 @@ impl SingleComponentPath {
     }
 }
 
-impl_ref_path_traits! {SingleComponentPath}
+impl_ref_path_traits! {SingleComponentPath, "a path with only a single forwarding component"}
 impl_conv_traits! {SingleComponentPathBuf, SingleComponentPath}
 
 /// A safe wrapper for a `PathBuf`.
@@ -280,7 +345,7 @@ impl MultiComponentPathBuf {
     }
 }
 
-impl_buf_traits! {MultiComponentPathBuf}
+impl_buf_traits! {MultiComponentPathBuf, "a relative, only forwarding, path"}
 
 /// A safe wrapper for a `Path`.
 /// This prevents path traversal attacks.
@@ -334,7 +399,7 @@ impl MultiComponentPath {
     }
 }
 
-impl_ref_path_traits! {MultiComponentPath}
+impl_ref_path_traits! {MultiComponentPath, "a relative, only forwarding, path"}
 impl_conv_traits! {MultiComponentPathBuf, MultiComponentPath}
 
 /// Extension trait for [`PathBuf`] to push only components which don't allow path traversal.
