@@ -58,6 +58,14 @@ macro_rules! impl_buf_traits {
             }
         }
 
+        impl std::str::FromStr for $path_buf {
+            type Err = &'static str;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                Self::new(s).ok_or(concat!("Not ", $serde_expected_type))
+            }
+        }
+
         #[cfg(feature = "serde")]
         impl<'de> serde_core::Deserialize<'de> for $path_buf {
             fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
