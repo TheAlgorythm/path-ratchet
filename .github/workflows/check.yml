@@ -31,8 +31,10 @@ jobs:
       uses: Mozilla-Actions/sccache-action@v0.0.9
     - name: Build
       run: cargo build --locked --release --verbose
-    - name: Run tests
+    - name: Run Tests
       run: cargo test --locked --release --verbose
+    - name: Run Tests (All Features)
+      run: cargo test --locked --release --verbose --all-features
 
   lints:
     runs-on: ubuntu-latest
