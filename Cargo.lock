@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "path_ratchet"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "serde_core",
  "serde_test",
