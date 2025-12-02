@@ -19,7 +19,7 @@ jobs:
       SCCACHE_GHA_ENABLED: "true"
       RUSTC_WRAPPER: "sccache"
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - name: Install latest stable
       uses: actions-rs/toolchain@v1
       with:
@@ -39,7 +39,7 @@ jobs:
   lints:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install latest stable
         uses: actions-rs/toolchain@v1
         with:
