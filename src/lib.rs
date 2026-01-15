@@ -242,6 +242,7 @@ impl SingleComponentPathBuf {
     /// assert!(SingleComponentPathBuf::new("..").is_none());
     /// assert!(SingleComponentPathBuf::new("/").is_none());
     /// assert!(SingleComponentPathBuf::new("/etc/shadow").is_none());
+    /// assert!(SingleComponentPathBuf::new("").is_none());
     /// # }
     /// ```
     #[inline]
@@ -288,6 +289,7 @@ impl SingleComponentPath {
     /// assert!(SingleComponentPath::new("..").is_none());
     /// assert!(SingleComponentPath::new("/").is_none());
     /// assert!(SingleComponentPath::new("/etc/shadow").is_none());
+    /// assert!(SingleComponentPath::new("").is_none());
     /// # }
     /// ```
     #[inline]
@@ -345,6 +347,7 @@ impl MultiComponentPathBuf {
     /// let some_valid_file = MultiComponentPathBuf::new("bar.txt").unwrap();
     /// let with_backreference = MultiComponentPathBuf::new("./bar.txt").unwrap();
     /// let multi = MultiComponentPathBuf::new("foo/bar.txt").unwrap();
+    /// let empty = MultiComponentPathBuf::new("").unwrap();
     /// assert!(MultiComponentPathBuf::new("..").is_none());
     /// assert!(MultiComponentPathBuf::new("/").is_none());
     /// assert!(MultiComponentPathBuf::new("/etc/shadow").is_none());
@@ -391,6 +394,7 @@ impl MultiComponentPath {
     /// let some_valid_file = MultiComponentPath::new("bar.txt").unwrap();
     /// let with_backreference = MultiComponentPath::new("./bar.txt").unwrap();
     /// let multi = MultiComponentPath::new("foo/bar.txt").unwrap();
+    /// let empty = MultiComponentPath::new("").unwrap();
     /// assert!(MultiComponentPath::new("..").is_none());
     /// assert!(MultiComponentPath::new("/").is_none());
     /// assert!(MultiComponentPath::new("/etc/shadow").is_none());
