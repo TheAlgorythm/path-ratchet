@@ -13,7 +13,7 @@ env:
   CARGO_PROFILE_TEST_DEBUG: 0
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: "true"
@@ -32,9 +32,26 @@ jobs:
     - name: Build
       run: cargo build --locked --release --verbose
     - name: Run Tests
+      env:
+        PROPTEST_CASES: 32768
       run: cargo test --locked --release --verbose
     - name: Run Tests (All Features)
       run: cargo test --locked --release --verbose --all-features
+
+  miri:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - name: Install latest Miri
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: nightly
+        override: true
+        components: miri
+    - name: Setup Miri
+      run: cargo miri setup
+    - name: Run Tests (All Features) with Miri
+      run: cargo miri test --locked --all-features
 
   lints:
     runs-on: ubuntu-latest

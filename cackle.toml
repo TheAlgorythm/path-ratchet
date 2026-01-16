@@ -20,6 +20,9 @@ exclude = [
 exclude = [
     "std::path",
 ]
+include = [
+    "rustix::fs",
+]
 
 [pkg.path_ratchet]
 allow_unsafe = true
@@ -39,3 +42,90 @@ build.allow_apis = [
     "process",
 ]
 allow_unsafe = true
+
+[pkg.zerocopy-derive]
+allow_proc_macro = true
+
+[pkg.bitflags]
+allow_unsafe = true
+
+[pkg.libc]
+build.allow_apis = [
+    "process",
+]
+allow_unsafe = true
+
+[pkg.zerocopy]
+build.allow_apis = [
+    "fs",
+    "process",
+]
+allow_unsafe = true
+
+[pkg.getrandom]
+build.allow_apis = [
+    "process",
+]
+allow_unsafe = true
+
+[pkg.linux-raw-sys]
+allow_unsafe = true
+
+[pkg.rustix]
+build.allow_apis = [
+    "fs",
+    "process",
+]
+allow_unsafe = true
+
+[pkg.autocfg]
+from.build.allow_apis = [
+    "fs",
+    "process",
+]
+
+[pkg.once_cell]
+allow_unsafe = true
+
+[pkg.bit-vec]
+allow_unsafe = true
+
+[pkg.unarray]
+allow_unsafe = true
+
+[pkg.num-traits]
+allow_unsafe = true
+
+[pkg.bit-set]
+allow_unsafe = true
+
+[pkg.wait-timeout]
+allow_unsafe = true
+from.test.allow_apis = [
+    "process",
+    "unix_sockets",
+]
+
+[pkg.ppv-lite86]
+allow_unsafe = true
+
+[pkg.rand]
+allow_unsafe = true
+
+[pkg.proptest]
+allow_unsafe = true
+from.test.allow_apis = [
+    "fs",
+    "process",
+]
+
+[pkg.rusty-fork]
+from.test.allow_apis = [
+    "fs",
+    "process",
+]
+
+[pkg.tempfile]
+from.test.allow_apis = [
+    "fs",
+]

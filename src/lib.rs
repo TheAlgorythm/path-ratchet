@@ -1,3 +1,5 @@
+//! Prevent path traversal attacks at the type level.
+//!
 //! [`PathBuf::push`] allows any form of path traversal:
 //!
 //! ```
@@ -39,8 +41,8 @@
 //! # }
 //! ```
 //!
-//! Further path-ratchet is effective against classic path traversals where the path is an untrusted input in the threat model.
-//! In threat models where the attacker has access to the file system (e.g. can create symlinks), this approach isn't sufficent and should be complemented with sandboxing and/or a capability based approach (e.g. `cap-std`)
+//! Further path-ratchet is effective against classic semantic path traversals where the path is an untrusted input in the threat model.
+//! In threat models with an attacker who has access to the file system (e.g. can create symlinks), this approach isn't sufficent and should be complemented with sandboxing and/or a capability based approach (e.g. `cap-std`).
 //!
 //! ## Features
 //!
@@ -242,6 +244,7 @@ impl SingleComponentPathBuf {
     /// assert!(SingleComponentPathBuf::new("..").is_none());
     /// assert!(SingleComponentPathBuf::new("/").is_none());
     /// assert!(SingleComponentPathBuf::new("/etc/shadow").is_none());
+    /// assert!(SingleComponentPathBuf::new("").is_none());
     /// # }
     /// ```
     #[inline]
@@ -288,6 +291,7 @@ impl SingleComponentPath {
     /// assert!(SingleComponentPath::new("..").is_none());
     /// assert!(SingleComponentPath::new("/").is_none());
     /// assert!(SingleComponentPath::new("/etc/shadow").is_none());
+    /// assert!(SingleComponentPath::new("").is_none());
     /// # }
     /// ```
     #[inline]
@@ -345,6 +349,7 @@ impl MultiComponentPathBuf {
     /// let some_valid_file = MultiComponentPathBuf::new("bar.txt").unwrap();
     /// let with_backreference = MultiComponentPathBuf::new("./bar.txt").unwrap();
     /// let multi = MultiComponentPathBuf::new("foo/bar.txt").unwrap();
+    /// let empty = MultiComponentPathBuf::new("").unwrap();
     /// assert!(MultiComponentPathBuf::new("..").is_none());
     /// assert!(MultiComponentPathBuf::new("/").is_none());
     /// assert!(MultiComponentPathBuf::new("/etc/shadow").is_none());
@@ -391,6 +396,7 @@ impl MultiComponentPath {
     /// let some_valid_file = MultiComponentPath::new("bar.txt").unwrap();
     /// let with_backreference = MultiComponentPath::new("./bar.txt").unwrap();
     /// let multi = MultiComponentPath::new("foo/bar.txt").unwrap();
+    /// let empty = MultiComponentPath::new("").unwrap();
     /// assert!(MultiComponentPath::new("..").is_none());
     /// assert!(MultiComponentPath::new("/").is_none());
     /// assert!(MultiComponentPath::new("/etc/shadow").is_none());
