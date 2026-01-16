@@ -36,7 +36,6 @@ jobs:
     - name: Run Tests (All Features)
       run: cargo test --locked --release --verbose --all-features
 
-jobs:
   miri:
     runs-on: ubuntu-latest
     steps:
