@@ -13,7 +13,7 @@ env:
   CARGO_PROFILE_TEST_DEBUG: 0
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
     env:
       SCCACHE_GHA_ENABLED: "true"
@@ -33,7 +33,7 @@ jobs:
       run: cargo build --locked --release --verbose
     - name: Run Tests
       env:
-        PROPTEST_CASES: 2048
+        PROPTEST_CASES: 32768
       run: cargo test --locked --release --verbose
     - name: Run Tests (All Features)
       run: cargo test --locked --release --verbose --all-features

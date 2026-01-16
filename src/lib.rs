@@ -1,3 +1,5 @@
+//! Prevent path traversal attacks at the type level.
+//! 
 //! [`PathBuf::push`] allows any form of path traversal:
 //!
 //! ```
@@ -39,8 +41,8 @@
 //! # }
 //! ```
 //!
-//! Further path-ratchet is effective against classic path traversals where the path is an untrusted input in the threat model.
-//! In threat models where the attacker has access to the file system (e.g. can create symlinks), this approach isn't sufficent and should be complemented with sandboxing and/or a capability based approach (e.g. `cap-std`)
+//! Further path-ratchet is effective against classic semantic path traversals where the path is an untrusted input in the threat model.
+//! In threat models with an attacker who has access to the file system (e.g. can create symlinks), this approach isn't sufficent and should be complemented with sandboxing and/or a capability based approach (e.g. `cap-std`).
 //!
 //! ## Features
 //!
