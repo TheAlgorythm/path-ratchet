@@ -17,3 +17,8 @@ let user_input = "/etc/shadow";
 let mut filename = PathBuf::from("/tmp");
 filename.push_component(SingleComponentPath::new(user_input).unwrap());
 ```
+
+For security reasons, this crate follows the principle ["Parse, don’t validate"](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/) , making it fairly simple yet effective.
+There are no undefined edge cases.
+Every case can be seen or deduced from the doctests.
+Fuzzing and property-based testing ensure these assumptions are met and guaranteeing the general security of the crate.
