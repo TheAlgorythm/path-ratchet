@@ -1,5 +1,5 @@
 //! Prevent path traversal attacks at the type level.
-//! 
+//!
 //! [`PathBuf::push`] allows any form of path traversal:
 //!
 //! ```
