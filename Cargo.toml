@@ -21,7 +21,7 @@ serde = ["dep:serde_core"]
 
 [dev-dependencies]
 normalize-path = "0.2.1"
-proptest = "1.10.0"
+proptest = "1.11.0"
 serde_test = "1.0"
 
 [lints.rust]
