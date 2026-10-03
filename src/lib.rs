@@ -30,8 +30,8 @@
 //!
 //! # Security
 //!
-//! It is essential to check the path on the same platform it is used on.
-//! As an example the absolute windows path `C:\path\to\file.txt` will be interpreted as a simple file or directory name on an UNIX-system.
+//! It is essential to check the path on the same platform on which the path is used.
+//! For example, the absolute Windows path `C:\path\to\file.txt` will be interpreted as a simple file or directory name on a UNIX system.
 //!
 //! ```
 //! # use path_ratchet::prelude::*;
@@ -41,8 +41,8 @@
 //! # }
 //! ```
 //!
-//! Further path-ratchet is effective against classic semantic path traversals where the path is an untrusted input in the threat model.
-//! In threat models with an attacker who has access to the file system (e.g. can create symlinks), this approach isn't sufficent and should be complemented with sandboxing and/or a capability based approach (e.g. `cap-std`).
+//! Further, path-ratchet is effective against classic semantic path traversals where the path is an untrusted input in the threat model.
+//! However, in threat models where the attacker has access to the file system (e.g. can create symlinks), this approach is insufficient and should be complemented with sandboxing and/or a capability-based approach (e.g. `cap-std`).
 //!
 //! ## Features
 //!
