@@ -18,8 +18,8 @@ let mut filename = PathBuf::from("/tmp");
 filename.push_component(SingleComponentPath::new(user_input).unwrap());
 ```
 
-`path_ratchet` is effective against classic semantic path traversals where the path is an untrusted input in the threat model.
-Nevertheless, in threat models where the attacker has access to the file system (for example, if they can create symlinks), this approach is inadequate and must be supplemented with sandboxing and/or a capability-based approach (for example, the `cap-std` crate).
+`path_ratchet` is effective against classic semantic path traversals where the path is an untrusted input in the threat model ([CWE-22](https://cwe.mitre.org/data/definitions/22.html)).
+Nevertheless, in threat models where the attacker has access to the file system (for example, if they can create symlinks; [CWE-59](https://cwe.mitre.org/data/definitions/59.html)), this approach is inadequate and must be supplemented with sandboxing and/or a capability-based approach (for example, the `cap-std` crate).
 Other crates targeting path traversal do not differentiate between these attacks properly and attempt to mitigate them all at once.
 However, the necessary mitigation depends on the threat model, and due to TOCTOU, the ideal times for the two mitigations are not the same.
 Therefore, these mitigations should not be conflated.
